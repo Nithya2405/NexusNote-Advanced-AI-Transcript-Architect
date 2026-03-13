@@ -186,19 +186,31 @@ export const NoteDisplay: React.FC<Props> = ({ note }) => {
           <SectionCard icon={CheckSquare} title="Decisions Detected" color="amber">
             <div className="space-y-4">
               {note.decisions.map((d, i) => (
-                <div key={i} className="p-4 bg-amber-500/5 border border-amber-500/10 rounded-xl space-y-3">
+                <div key={i} className="p-5 bg-amber-500/5 border border-amber-500/10 rounded-xl space-y-4">
                   <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-mono text-amber-500 uppercase tracking-widest">Decision {i + 1}</span>
+                    <span className="text-[10px] font-mono text-amber-500 uppercase tracking-widest font-bold">Decision {i + 1}</span>
                     <div className="flex -space-x-2">
                       {d.stakeholders.map((s, j) => (
-                        <div key={j} className="w-6 h-6 rounded-full bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-[8px] font-bold text-amber-500" title={s}>
+                        <div key={j} className="w-7 h-7 rounded-full bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-[10px] font-bold text-amber-500 shadow-sm" title={s}>
                           {s.charAt(0)}
                         </div>
                       ))}
                     </div>
                   </div>
-                  <p className="text-sm text-gray-200 font-medium">{d.decision}</p>
-                  <p className="text-xs text-gray-500 italic">{d.rationale}</p>
+                  <div className="space-y-2">
+                    <p className="text-base text-white font-medium leading-snug">{d.decision}</p>
+                    <div className="p-3 bg-amber-500/10 rounded-lg border border-amber-500/10">
+                      <h5 className="text-[9px] font-mono text-amber-500/70 uppercase tracking-widest mb-1">Rationale & Context</h5>
+                      <p className="text-xs text-gray-300 italic leading-relaxed">{d.rationale}</p>
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {d.stakeholders.map((s, j) => (
+                      <span key={j} className="px-2 py-0.5 bg-amber-500/10 text-amber-500 rounded text-[9px] font-mono border border-amber-500/20">
+                        {s}
+                      </span>
+                    ))}
+                  </div>
                 </div>
               ))}
             </div>

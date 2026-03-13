@@ -3,10 +3,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { GoogleGenAI, Type } from "@google/genai";
+import { GoogleGenAI, Type, ThinkingLevel } from "@google/genai";
 import { PipelineStage, StructuredNote, ProcessingState, Entity, Relationship, ActionItem, TimelineEvent } from "../types";
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
+const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY || "" });
 
 const MODEL_NAME = "gemini-3.1-pro-preview";
 
@@ -45,24 +45,31 @@ export class TranscriptProcessor {
 
       // Stage 1: Chunk Analysis
       this.updateProgress(PipelineStage.CHUNK_ANALYSIS, 15, 0, totalChunks);
-      const chunkAnalyses = [];
-      for (let i = 0; i < chunks.length; i++) {
-        const analysis = await this.analyzeChunk(chunks[i], i, totalChunks);
-        chunkAnalyses.push(analysis);
-        this.updateProgress(PipelineStage.CHUNK_ANALYSIS, 15 + (i / totalChunks) * 30, i + 1, totalChunks);
-      }
+      
+      // Parallelize chunk analysis for speed
+      const chunkPromises = chunks.map((chunk, i) => 
+        this.analyzeChunk(chunk, i, totalChunks).then(analysis => {
+          this.updateProgress(PipelineStage.CHUNK_ANALYSIS, 15 + ((i + 1) / totalChunks) * 30, i + 1, totalChunks);
+          return analysis;
+        })
+      );
+      
+      const chunkAnalyses = await Promise.all(chunkPromises);
 
-      // Stage 2: Topic Clustering
+      // Parallelize Topic Clustering and Knowledge Extraction
       this.updateProgress(PipelineStage.TOPIC_CLUSTERING, 50);
-      const topics = await this.extractGlobalTopics(chunkAnalyses);
+      
+      const [topics, knowledgeGraph] = await Promise.all([
+        this.extractGlobalTopics(chunkAnalyses),
+        this.generateKnowledgeGraph(chunkAnalyses).then(kg => {
+          this.updateProgress(PipelineStage.KNOWLEDGE_EXTRACTION, 80);
+          return kg;
+        })
+      ]);
 
-      // Stage 3: Insight Extraction
+      // Stage 3: Insight Extraction (Depends on Topics)
       this.updateProgress(PipelineStage.INSIGHT_EXTRACTION, 65);
       const insights = await this.extractGlobalInsights(chunkAnalyses, topics);
-
-      // Stage 4: Knowledge Extraction
-      this.updateProgress(PipelineStage.KNOWLEDGE_EXTRACTION, 80);
-      const knowledgeGraph = await this.generateKnowledgeGraph(chunkAnalyses);
 
       // Stage 5: Global Synthesis
       this.updateProgress(PipelineStage.GLOBAL_SYNTHESIS, 90);
@@ -80,16 +87,18 @@ export class TranscriptProcessor {
     const response = await ai.models.generateContent({
       model: MODEL_NAME,
       contents: `Analyze the following transcript chunk (${index + 1}/${total}) and extract:
-      1. Key points (bullet points with speaker attribution if possible)
+      1. Key points (bullet points with speaker attribution)
       2. Action items (task, assignee, priority, context)
-      3. Timeline events (timestamp if available, topic, summary)
+      3. Timeline events (timestamp, topic, summary)
       4. Entities (people, companies, technologies, ideas)
-      5. Decisions made (decision, rationale, stakeholders)
+      5. Decisions made (decision, rationale, stakeholders). 
+         IMPORTANT: If rationale or stakeholders are not explicitly stated, infer them logically from the surrounding conversation.
       6. Highlight quotes (quote, speaker, context)
 
       Chunk:
       ${chunk}`,
       config: {
+        thinkingConfig: { thinkingLevel: ThinkingLevel.LOW },
         responseMimeType: "application/json",
         responseSchema: {
           type: Type.OBJECT,
