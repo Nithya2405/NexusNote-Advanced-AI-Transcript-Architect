@@ -32,7 +32,7 @@ AI platform that converts **long transcripts into structured knowledge bases** u
 # Product Demo
 
 Experience the AI Transcript Architect in action:
-[View Live Demo](https://ais-pre-aewv6bi7byw5qd5zyuycwr-112972360589.asia-southeast1.run.app)
+[View Live Demo](https://nithya2405.github.io/NexusNote-Advanced-AI-Transcript-Architect/)
 
 Example flow:
 
