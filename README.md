@@ -183,7 +183,7 @@ Database
 Clone repository
 
 ```bash
-git clone https://github.com/yourusername/nexusnote
+git clone https://github.com/Nithya2405/NexusNote-Advanced-AI-Transcript-Architect
 cd nexusnote
 ```
 
@@ -278,7 +278,7 @@ We welcome contributions.
 Fork repository
 
 ```
-git fork https://github.com/yourusername/nexusnote
+git fork https://github.com/Nithya2405/NexusNote-Advanced-AI-Transcript-Architect
 ```
 
 Create branch
