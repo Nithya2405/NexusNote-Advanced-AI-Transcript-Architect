@@ -1,0 +1,5 @@
+{
+  "name": "NexusNote: Advanced AI Transcript Architect",
+  "description": "A production-ready AI pipeline that transforms long transcripts into structured Notion-optimized knowledge bases using multi-stage LLM processing.",
+  "requestFramePermissions": []
+}
